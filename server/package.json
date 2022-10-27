@@ -1,0 +1,25 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Server of the application",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pulkitnarula13/People_GraphQL.git"
+  },
+  "author": "Pulkit Narula",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pulkitnarula13/People_GraphQL/issues"
+  },
+  "homepage": "https://github.com/pulkitnarula13/People_GraphQL#readme",
+  "dependencies": {
+    "apollo-server-core": "^3.10.3",
+    "apollo-server-express": "^3.10.3",
+    "express": "^4.18.2",
+    "graphql": "^16.6.0"
+  }
+}
