@@ -7,9 +7,13 @@
   flex-direction: column;
   border: 5px solid black;
   margin: 100px auto;
+  border-radius: 30px;
   padding: 30px;
 }
-
+.ant-col{
+  padding: "130px";
+  background: "#ececec";
+}
 .App-logo {
   height: 40vmin;
   pointer-events: none;

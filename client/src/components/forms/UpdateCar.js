@@ -1,156 +1,169 @@
-import { useMutation } from "@apollo/client";
-import { UPDATE_CAR } from "../../queries";
-import { useEffect, useState } from "react";
-import { Form, Input, Button } from "antd";
+import { useMutation, useQuery } from "@apollo/client";
+import { Button, Form, Input, Select } from "antd";
+import { useDebugValue, useEffect, useState } from "react";
+import { ADD_CAR, GET_PEOPLE, UPDATE_CAR } from "../../queries";
 
 const UpdateCar = (props) => {
-  const [id] = useState(props.id);
-  const [year, setYear] = useState(props.year);
-  const [make, setMake] = useState(props.make);
-  const [model, setModel] = useState(props.model);
-  const [price, setPrice] = useState(props.price);
-  const [personId, setPersonId] = useState(props.personId);
-  const [updateCar] = useMutation(UPDATE_CAR);
+    const [updateCar] = useMutation(UPDATE_CAR);
+    const [id, setId] = useState(props.id);
+    const [make, setMake] = useState(props.make);
+    const [model, setModel] = useState(props.model);
+    const [personId, setPersonId] = useState(props.personId);
+    const [price, setPrice] = useState(props.price);
+    const [year, setYear] = useState(props.year);
+    const [form] = Form.useForm();
+    const [, forceUpdate] = useState();
+    const { Option } = Select;
 
-  const [form] = Form.useForm();
-  const [, forceUpdate] = useState();
+    useEffect(() => {
+        forceUpdate({});
+    }, []);
 
-  var yearChanged = props.year;
-  var makeChanged = props.make;
-  var modelChanged = props.model;
-  var priceChanged = props.price;
-  var personIdChanged = props.personId;
+    const { loading, error, data } = useQuery(GET_PEOPLE);
+    if (loading) return "Loading...";
+    if (error) return `Error ${error.message}`;
 
-  useEffect(() => {
-    forceUpdate({});
-  }, []);
+    const onFinish = (values) => {
+        const { price, model, make, year, personId } = values;
 
-  const onFinish = (values) => {
-    const { year, make, model, price, personId } = values;
+        updateCar({
+            variables: {
+                price: parseFloat(price),
+                model,
+                make,
+                year: parseInt(year),
+                personId,
+                id,
+            },
+            optimisticResponse: {
+                __typename: "Mutation",
+                updateCar: {
+                    __type: "Car",
+                    price,
+                    model,
+                    make,
+                    year,
+                    personId,
+                    id,
+                },
+            },
+        });
 
-    updateCar({
-      variables: {
-        id,
-        year,
-        make,
-        model,
-        price,
-        personId,
-      },
-    });
+        props.onButtonClick();
+    };
 
-    props.onButtonClick();
-  };
+    const updateStateVariable = (variable, value) => {
+        props.updateStateVariable(variable, value);
+        switch (variable) {
+            case "id":
+                setId(value);
+                break;
+            case "make":
+                setMake(value);
+                break;
+            case "model":
+                setModel(value);
+                break;
+            case "personId":
+                setPersonId(value);
+                break;
+            case "price":
+                setPrice(value);
+                break;
+            case "year":
+                setYear(value);
+                break;
+            default:
+                break;
+        }
+    };
 
-  const updateStateVariable = (variable, value) => {
-    props.updateStateVariable(variable, value);
-    switch (variable) {
-      case "year":
-        setYear(value);
-        break;
-      case "make":
-        setMake(value);
-        break;
-      case "model":
-        setModel(value);
-        break;
-      case "price":
-        setPrice(value);
-        break;
-      case "personId":
-        setPersonId(value);
-      default:
-        break;
-    }
-  };
-
-  return (
-    <Form
-      form={form}
-      name="update-car-form"
-      layout="lnline"
-      onFinish={onFinish}
-      initialValues={{
-        year: year,
-        make: make,
-        model: model,
-        price: price,
-        personId: personId,
-      }}
-    >
-      <Form.Item
-        name="year"
-        rules={[{ required: true, message: "Please input the year!" }]}
-      >
-        <Input
-          placeholder="i.e 2020"
-          onChange={(e) => (yearChanged = e.target.value)}
-        />
-      </Form.Item>
-      <Form.Item
-        name="make"
-        rules={[{ required: true, message: "Please input the maker" }]}
-      >
-        <Input
-          placeholder="i.e Toyota"
-          onChange={(e) => (makeChanged = e.target.value)}
-        />
-      </Form.Item>
-      <Form.Item
-        name="model"
-        rules={[{ required: true, message: "Please input the model" }]}
-      >
-        <Input
-          placeholder="i.e Corolla"
-          onChange={(e) => (modelChanged = e.target.value)}
-        />
-      </Form.Item>
-      <Form.Item
-        name="price"
-        rules={[{ required: true, message: "Please input the price" }]}
-      >
-        <Input
-          placeholder="i.e $10000"
-          onChange={(e) => (priceChanged = e.target.value)}
-        />
-      </Form.Item>
-      <Form.Item
-        name="personId"
-        rules={[{ required: true, message: "Please input the personId" }]}
-      >
-        <Input
-          placeholder="i.e 1"
-          onChange={(e) => (personIdChanged = e.target.value)}
-        />
-      </Form.Item>
-      <Form.Item shouldUpdate={true}>
-        {() => (
-          <Button
-            type="primary"
-            htmlType="sumbit"
-            disabled={
-              (!form.isFieldTouched("year") &&
-                !form.isFieldTouched("make") &&
-                !form.isFieldTouched("model") &&
-                !form.isFieldTouched("price") &&
-                !form.isFieldTouched("personId")) ||
-              form.getFieldsError().filter(({ errors }) => errors.length).length
-            }
-            onClick={() => {
-              updateStateVariable("year", yearChanged);
-              updateStateVariable("make", makeChanged);
-              updateStateVariable("model", modelChanged);
-              updateStateVariable("price", priceChanged);
-              updateStateVariable("personId", personIdChanged);
+    return (
+        <Form
+            form={form}
+            name="update-car-form"
+            onFinish={onFinish}
+            layout="horizontal"
+            size="large"
+            style={{ margin: "40px" }}
+            initialValues={{
+                year: year,
+                make: make,
+                model: model,
+                price: price,
+                personId: personId,
             }}
-          >
-            Update Car
-          </Button>
-        )}
-      </Form.Item>
-      <Button onClick={props.onButtonClick}>Cancel</Button>
-    </Form>
-  );
+        >
+            <Form.Item name="year">
+                <Input
+                    placeholder="Year i.e. 2000"
+                    allowClear
+                    onChange={(e) =>
+                        updateStateVariable("year", e.target.value)
+                    }
+                    value={year}
+                />
+            </Form.Item>
+            <Form.Item
+                name="make"
+                rules={[
+                    {
+                        message: "Please input make of car",
+                    },
+                ]}
+            >
+                <Input
+                    placeholder="Make i.e. Chevrolet"
+                    allowClear
+                    onChange={(e) =>
+                        updateStateVariable("make", e.target.value)
+                    }
+                />
+            </Form.Item>
+            <Form.Item name="model">
+                <Input
+                    placeholder="Model i.e. Spark"
+                    allowClear
+                    onChange={(e) =>
+                        updateStateVariable("model", e.target.value)
+                    }
+                />
+            </Form.Item>
+            <Form.Item name="price">
+                <Input
+                    placeholder="Price i.e. 5000"
+                    allowClear
+                    onChange={(e) => updateStateVariable("price", e)}
+                />
+            </Form.Item>
+
+            <Form.Item
+                name="personId"
+                rules={[{ message: "Please select owner" }]}
+            >
+                <Select
+                    placeholder="Select The Owner"
+                    onChange={updateStateVariable(personId)}
+                    allowClear
+                >
+                    {data.people.map(({ id, firstName, lastName }) => (
+                        <Option value={id} key={id}>
+                            {firstName} {lastName}
+                        </Option>
+                    ))}
+                </Select>
+            </Form.Item>
+
+            <Form.Item shouldUpdate={true}>
+                {() => (
+                    <Button type="primary" htmlType="submit">
+                        Update Car
+                    </Button>
+                )}
+            </Form.Item>
+            <Button onClick={props.onButtonClick}>Cancel</Button>
+        </Form>
+    );
 };
 
 export default UpdateCar;

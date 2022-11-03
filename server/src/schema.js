@@ -1,5 +1,5 @@
-import { gql } from "apollo-server-express";
-import { find, remove } from "lodash";
+import { gql } from "apollo-server";
+import { filter, find, remove } from "lodash";
 
 const people = [
     {
@@ -17,7 +17,7 @@ const people = [
       firstName: 'Linux',
       lastName: 'Torvalds'
     }
-  ];
+  ]
   
   const cars = [
     {
@@ -92,140 +92,164 @@ const people = [
       price: '55000',
       personId: '3'
     }
-  ];
+];
 
 const typeDefs = gql`
-  type Person {
-    id: String!
-    firstName: String!
-    lastName: String!
-  }
-
-  type Car {
-    id: String!
-    year: Int!
-    make: String!
-    model: String!
-    price: Float!
-    personId: String!
-  }
-
-  type Query {
-    person(id: String!): Person
-    people: [Person]
-    car(id: String!): Car
-    cars: [Car]
-  }
-
-  type Mutation {
-
-    addPerson(id: String!, firstName: String!, lastName: String!): Person
-    
-    updatePerson(id: String!, firstName: String, lastName: String): Person
-
-    removePerson(id: String!): Person
-
-    addCar(
+    type Person {
         id: String!
-        personId: String!
-        year: Int!
-        make: String!
-        model: String!
-        price: Float!
-    ): Car
+        firstName: String
+        lastName: String
+        cars: [Car]
+    }
 
-    updateCar(
+    type Car {
         id: String!
         personId: String!
         year: Int
         make: String
         model: String
         price: Float
-    ): Car
+    }
 
-    removeCar(id: String!): Car
-  }
+    type Query {
+        people: [Person]
+        person(id: String!): Person
+        personWithCar(id: String!): Person
+        cars: [Car]
+    }
+
+    type Mutation {
+        addPerson(id: String!, firstName: String!, lastName: String!): Person
+
+        updatePerson(id: String!, firstName: String, lastName: String): Person
+
+        removePerson(id: String!): Person
+
+        addCar(
+            id: String!
+            personId: String!
+            year: Int!
+            make: String!
+            model: String!
+            price: Float!
+        ): Car
+
+        updateCar(
+            id: String!
+            personId: String!
+            year: Int
+            make: String
+            model: String
+            price: Float
+        ): Car
+
+        removeCar(id: String!): Car
+    }
 `;
 
 const resolvers = {
-  Query: {
-    people: () => people,
-    person(parent, args, context, info) {
-      return find(people, { id: args.id });
-    },
-    cars: () => cars,
-    car(parent, args, context, info) {
-      return find(cars, { id: args.id });
-    },
-  },
+    Query: {
+        people: () => people,
 
-  Mutation: {
-    /* Mutation functions for people */
-    addPerson(root, args) {
-      const newPerson = {
-        id: args.id,
-        firstName: args.firstName,
-        lastName: args.lastName,
-      };
-      people.push(newPerson);
-      return newPerson;
+        personWithCar(parent, args, context, info) {
+            return find(people, { id: args.id });
+        },
+
+        cars: () => cars,
     },
 
-    updatePerson: (root, args) => {
-      const person = find(people, { id: args.id });
-      if (!person) {
-        throw new Error(`Not able to find person with id:  ${args.id}`);
-      }
-      person.firstName = args.firstName;
-      person.lastName = args.lastName;
-      return person;
+    Person: {
+        cars: (person) => {
+            return filter(cars, { personId: person.id });
+        },
     },
 
-    removePerson: (root, args) => {
-      const removedPerson = find(people, { id: args.id });
-      if (!removedPerson) {
-        throw new Error(`Not able to find person with id: ${args.id}`);
-      }
-      remove(people, { id: args.id });
-      return removedPerson;
-    },
+    Mutation: {
 
-    /* Mutation functions for cars */
-    addCar(root, args) {
-      const newCar = {
-        id: args.id,
-        year: args.year,
-        make: args.make,
-        model: args.model,
-        price: args.price,
-        personId: args.personId,
-      };
-      cars.push(newCar);
-      return newCar;
-    },
+        /* Mutation functions for people */
+        addPerson(root, args) {
+            const newPerson = {
+                id: args.id,
+                firstName: args.firstName,
+                lastName: args.lastName,
+                cars: [],
+            };
 
-    updateCar: (root, args) => {
-      const car = find(cars, { id: args.id });
-      if (!car) {
-        throw new Error(`Not able to find car with id: ${args.id}`);
-      }
-      car.year = args.year;
-      car.make = args.make;
-      car.model = args.model;
-      car.price = args.price;
-      car.personId = args.personId;
-      return car;
-    },
+            people.push(newPerson);
+            return newPerson;
+        },
 
-    removeCar: (root, args) => {
-      const removedCar = find(cars, { id: args.id });
-      if (!removedCar) {
-        throw new Error(`Not able to find car with id: ${args.id}`);
-      }
-      remove(cars, { id: args.id });
-      return removedCar;
+        updatePerson(root, args) {
+            const person = find(people, { id: args.id });
+
+            if (!person) {
+                throw new Error(`Not able to find person with id:  ${args.id}`);
+            }
+
+            person.firstName = args.firstName;
+            person.lastName = args.lastName;
+            return person;
+        },
+
+        removePerson(root, args) {
+            const removedPerson = find(people, { id: args.id });
+
+            if (!removedPerson) {
+                throw new Error(`Not able to find person with id:  ${args.id}`);
+            }
+
+            remove(people, (p) => {
+                return p.id === removedPerson.id;
+            });
+            return removedPerson;
+        },
+
+        /* Mutation functions for people */
+
+        addCar(root, args) {
+            const newCar = {
+                id: args.id,
+                year: args.year,
+                make: args.make,
+                model: args.model,
+                price: args.price,
+                personId: args.personId,
+            };
+
+            cars.push(newCar);
+            return newCar;
+        },
+
+        updateCar(root, args) {
+            const car = find(cars, { id: args.id });
+
+            if (!car) {
+                throw new Error(`Not able to find car with id:  ${args.id}`);
+            }
+
+            car.id = args.id;
+            car.personId = args.personId;
+            car.year = args.year;
+            car.make = args.make;
+            car.model = args.model;
+            car.price = args.price;
+
+            return car;
+        },
+
+        removeCar(root, args) {
+            const removedCar = find(cars, { id: args.id });
+
+            if (!removedCar) {
+                throw new Error(`Not able to find car with id:  ${args.id}`);
+            }
+
+            remove(cars, (c) => {
+                return c.id === removedCar.id;
+            });
+            return removedCar;
+        },
     },
-  },
 };
 
-export { typeDefs, resolvers }
+export { typeDefs, resolvers };

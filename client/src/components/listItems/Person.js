@@ -1,72 +1,74 @@
-import RemovePerson from "../buttons/RemovePerson";
 import { useState } from "react";
-import { useQuery } from "@apollo/client";
-import { useNavigate } from "react-router-dom";
-import { List, Button, Card } from "antd";
+import { Card } from "antd";
 import { EditOutlined } from "@ant-design/icons";
 import UpdatePerson from "../forms/UpdatePerson";
-import { GET_CARS } from "../../queries";
+import RemovePerson from "../buttons/RemovePerson";
+import Car from "./Car";
+import CarList from "../lists/CarList";
 
-const getStyles = () => ({
-  card: {
-    width: "500px",
-  },
+const getStyles = (props) => ({
+    card: {
+        width: "500px",
+    },
 });
 
 const Person = (props) => {
-  const styles = getStyles();
-  const [id] = useState(props.id);
-  const [firstName, setFirstName] = useState(props.firstName);
-  const [lastName, setLastName] = useState(props.lastName);
-  const [editMode, setEditMode] = useState(false);
-  const { loading, error, data } = useQuery(GET_CARS(props.id));
-  const navigate = useNavigate();
+    const [id] = useState(props.id);
+    const [firstName, setFirstName] = useState(props.firstName);
+    const [lastName, setLastName] = useState(props.lastName);
+    const [cars, setCars] = useState(props.cars);
+    const [editModePerson, setEditModePerson] = useState(false);
 
-  const handleButtonClick = () => {
-    setEditMode(!editMode);
-  };
+    const styles = getStyles();
 
-  const updateStateVariable = (variable, value) => {
-    switch (variable) {
-      case "firstName":
-        setFirstName(value);
-        break;
-      case "lastName":
-        setLastName(value);
-        break;
-      default:
-        break;
-    }
-  };
-  return (
-    <div>
-      {editMode ? (
-        <UpdatePerson
-          id={props.id}
-          firstName={props.firstName}
-          lastName={props.lastName}
-          onButtonClick={handleButtonClick}
-          updateStateVariable={updateStateVariable}
-        />
-      ) : (
-        <Card
-          actions={[
-            <EditOutlined ke="edit" onClick={handleButtonClick} />,
-            <RemovePerson id={id} />,
-          ]}
-          style={styles.card}
-        >
-          {firstName} {lastName}
-        </Card>
-      )}
-      <Button
-        type="primary"
-        onClick={() => navigate(`/ShowPerson/${props.id}`)}
-      >
-        Learn More
-      </Button>
-    </div>
-  );
+    const handleButtonPersonClick = () => {
+        setEditModePerson(!editModePerson);
+    };
+
+    const updateStateVariable = (variable, value) => {
+        switch (variable) {
+            case "firstName":
+                setFirstName(value);
+                break;
+            case "lastName":
+                setLastName(value);
+                break;
+            default:
+                break;
+        }
+    };
+
+    return (
+        <div>
+            {editModePerson ? (
+                <UpdatePerson
+                    id={props.id}
+                    firstName={props.firstName}
+                    lastName={props.lastName}
+                    onButtonClick={handleButtonPersonClick}
+                    updateStateVariable={updateStateVariable}
+                />
+            ) : (
+                <Card
+                    actions={[
+                        <EditOutlined
+                            key="edit"
+                            onClick={handleButtonPersonClick}
+                        />,
+                        <RemovePerson
+                            id={id}
+                            firstName={firstName}
+                            lastName={lastName}
+                        />,
+                    ]}
+                    style={styles.card}
+                    title={firstName + " " + lastName}
+                >
+                    <CarList cars={cars} />
+                </Card>
+            )}
+        </div>
+    );
 };
 
 export default Person;

@@ -1,134 +1,150 @@
-import { useMutation } from "@apollo/client";
-import { useState, useEffect } from "react";
-import { gql } from "@apollo/client";
-import { useQuery } from "@apollo/client";
-import { Form, Input, InputNumber, Button, Select } from "antd";
+import { useMutation, useQuery } from "@apollo/client";
+import { Button, Form, Input, Select } from "antd";
+import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { ADD_CAR, GET_CARS, GET_PEOPLE } from "../../queries";
-const { Option } = Select;
+import { ADD_CAR, GET_PEOPLE } from "../../queries";
 
 const AddCar = () => {
-  const [id] = useState(uuidv4());
-  const [addCar] = useMutation(ADD_CAR);
-  const [form] = Form.useForm();
-  const [, forceUpdate] = useState();
-  const [personId, setPersonId] = useState("");
+    const [addCarId] = useState(uuidv4());
+    const [addCar] = useMutation(ADD_CAR);
+    const [form] = Form.useForm();
+    const [, forcedUpdate] = useState();
+    const { Option } = Select;
 
-  useEffect(() => {
-    forceUpdate({});
-  }, []);
+    useEffect(() => {
+        forcedUpdate({});
+    }, []);
 
-  const { loading, error, data } = useQuery(GET_PEOPLE);
-  if (loading) return "Loading...";
-  if (error) return `Error! ${error.message}`;
+    const { loading, error, data } = useQuery(GET_PEOPLE);
+    if (loading) return "Loading...";
+    if (error) return `Error ${error.message}`;
 
-  let options = data.people.map((person) => (
-    <Option key={person.id} value={person.id}>
-      {person.firstName} {person.lastName}
-    </Option>
-  ));
+    const onFinish = (values) => {
+        const { price, model, make, year, personId } = values;
 
-  const onFinish = (values) => {
-    const { year, make, model, price, personId } = values;
-
-    addCar({
-      variables: {
-        id,
-        year,
-        make,
-        model,
-        price,
-        personId,
-      },
-      update: (proxy, { data: { addCar } }) => {
-        const data = proxy.readQuery({
-          query: GET_CARS,
+        addCar({
+            variables: {
+                price: parseFloat(price),
+                model,
+                make,
+                year: parseInt(year),
+                personId,
+                addCarId,
+            },
+            optimisticResponse: {
+                __typename: "Mutation",
+                updateCar: {
+                    __type: "Car",
+                    price,
+                    model,
+                    make,
+                    year,
+                    personId,
+                    addCarId,
+                },
+            },
+            update: (proxy, { data: { addPerson } }) => {
+                const data = proxy.readQuery({ query: GET_PEOPLE });
+                proxy.writeQuery({
+                    query: GET_PEOPLE,
+                    data: {
+                        ...data,
+                        people: [...data.people, addPerson],
+                    },
+                });
+            },
         });
-        console.log("allcars", data);
-        proxy.writeQuery({
-          query: GET_CARS,
-          data: {
-            allCars: [...data.allCars, addCar],
-          },
-        });
-      },
-    });
-  };
+    };
 
-  return (
-    <Form
-      form={form}
-      name="add-car-form"
-      layout="inline"
-      size="large"
-      style={{ marginBottom: "40px" }}
-      onFinish={onFinish}
-    >
-      <Form.Item
-        name="year"
-        rules={[{ required: true, message: "Please input the year" }]}
-      >
-        <Input placeholder="Year" />
-      </Form.Item>
-      <Form.Item
-        name="make"
-        rules={[{ required: true, message: "Please input the brand" }]}
-      >
-        <Input placeholder="Brand" />
-      </Form.Item>
-      <Form.Item
-        name="model"
-        rules={[{ required: true, message: "Please input the model" }]}
-      >
-        <Input placeholder="Model" />
-      </Form.Item>
-      <Form.Item
-        name="price"
-        rules={[{ required: true, message: "Please input the price" }]}
-      >
-        <InputNumber
-          defaultValue={1000}
-          formatter={(value) =>
-            `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-        />
-      </Form.Item>
-      <Form.Item
-        name="personId"
-        rules={[{ required: true, message: "Please input the person id" }]}
-      >
-        <Select
-          defaultValue="PersonID"
-          style={{
-            width: 120,
-          }}
-          onChange={(value) => {
-            if (value != personId || value !== "") {
-              setPersonId(value);
-            }
-          }}
+    return (
+        <Form
+            form={form}
+            name="add-car-form"
+            onFinish={onFinish}
+            layout="horizontal"
+            size="large"
+            style={{ marginBottom: "40px" }}
         >
-          {options}
-        </Select>
-      </Form.Item>
+            <Form.Item
+                name="year"
+                rules={[
+                    {
+                        required: true,
+                        message: "Please input year of car",
+                    },
+                ]}
+            >
+                <Input placeholder="Year i.e. 2000" />
+            </Form.Item>
+            <Form.Item
+                name="make"
+                rules={[
+                    {
+                        required: true,
+                        message: "Please input make of car",
+                    },
+                ]}
+            >
+                <Input placeholder="Make i.e. Chevrolet" />
+            </Form.Item>
+            <Form.Item
+                name="model"
+                rules={[
+                    {
+                        required: true,
+                        message: "Please input model of car",
+                    },
+                ]}
+            >
+                <Input placeholder="Model i.e. Spark" />
+            </Form.Item>
+            <Form.Item
+                name="price"
+                rules={[
+                    {
+                        required: true,
+                        message: "Please price year of car",
+                    },
+                ]}
+            >
+                <Input placeholder="Price i.e. 5000" />
+            </Form.Item>
 
-      <Form.Item shouldUpdate={true}>
-        {() => (
-          <Button
-            type="primary"
-            htmlType="submit"
-            disabled={
-              !form.isFieldsTouched("year") ||
-              form.getFieldsError().filter(({ errors }) => errors.length).length
-            }
-          >
-            Add Car
-          </Button>
-        )}
-      </Form.Item>
-    </Form>
-  );
+            <Form.Item
+                name="personId"
+                rules={[{ required: true, message: "Please select owner" }]}
+            >
+                <Select
+                    placeholder="Select The Owner"
+                    // onChange={onOwnerChange}
+                    allowClear
+                >
+                    {data.people.map(({ id, firstName, lastName }) => (
+                        <Option value={id} key={id}>
+                            {firstName} {lastName}
+                        </Option>
+                    ))}
+                </Select>
+            </Form.Item>
+
+            <Form.Item shouldUpdate={true}>
+                {() => (
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        disabled={
+                            !form.isFieldsTouched(true) ||
+                            form
+                                .getFieldError()
+                                .filter(({ errors }) => errors.length).length
+                        }
+                    >
+                        Add Car
+                    </Button>
+                )}
+            </Form.Item>
+        </Form>
+    );
 };
 
 export default AddCar;
