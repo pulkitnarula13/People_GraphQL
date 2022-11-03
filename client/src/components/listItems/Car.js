@@ -77,7 +77,7 @@ const Car = (props) => {
                     ]}
                     style={{
                         marginTop: 15,
-                        width: "500px",
+                        width: "400px",
                     }}
                     type="inner"
                 >

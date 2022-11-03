@@ -70,53 +70,52 @@ const AddCar = () => {
                 rules={[
                     {
                         required: true,
-                        message: "Please input year of car",
+                        message: "Please input year of car!",
                     },
                 ]}
             >
-                <Input placeholder="Year i.e. 2000" />
+                <Input placeholder="Year" />
             </Form.Item>
             <Form.Item
                 name="make"
                 rules={[
                     {
                         required: true,
-                        message: "Please input make of car",
+                        message: "Please input make of car!",
                     },
                 ]}
             >
-                <Input placeholder="Make i.e. Chevrolet" />
+                <Input placeholder="Make" />
             </Form.Item>
             <Form.Item
                 name="model"
                 rules={[
                     {
                         required: true,
-                        message: "Please input model of car",
+                        message: "Please input model of car!",
                     },
                 ]}
             >
-                <Input placeholder="Model i.e. Spark" />
+                <Input placeholder="Model" />
             </Form.Item>
             <Form.Item
                 name="price"
                 rules={[
                     {
                         required: true,
-                        message: "Please price year of car",
+                        message: "Please price year of car!",
                     },
                 ]}
             >
-                <Input placeholder="Price i.e. 5000" />
+                <Input placeholder="Price" />
             </Form.Item>
 
             <Form.Item
                 name="personId"
-                rules={[{ required: true, message: "Please select owner" }]}
+                rules={[{ required: true, message: "Please select owner of the car!" }]}
             >
                 <Select
-                    placeholder="Select The Owner"
-                    // onChange={onOwnerChange}
+                    placeholder="Select a person"
                     allowClear
                 >
                     {data.people.map(({ id, firstName, lastName }) => (
