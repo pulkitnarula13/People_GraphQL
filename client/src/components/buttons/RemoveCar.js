@@ -34,11 +34,11 @@ const RemoveCar = ({ id, personId, price, model, make, year }) => {
                     removeCar: {
                         __typename: "Car",
                         id,
-                        personId,
-                        price,
-                        model,
-                        make,
                         year,
+                        make,
+                        model,
+                        price,
+                        personId,
                     },
                 },
             });
