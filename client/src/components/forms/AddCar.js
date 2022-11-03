@@ -61,7 +61,7 @@ const AddCar = () => {
             form={form}
             name="add-car-form"
             onFinish={onFinish}
-            layout="horizontal"
+            layout="inline"
             size="large"
             style={{ marginBottom: "40px" }}
         >
