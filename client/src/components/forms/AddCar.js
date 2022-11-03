@@ -1,11 +1,11 @@
-import { useMutation, useQuery } from "@apollo/client";
-import { Button, Form, Input, Select } from "antd";
-import { useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
-import { ADD_CAR, GET_PEOPLE } from "../../queries";
+import { useEffect, useState } from "react"
+import { useMutation, useQuery } from "@apollo/client"
+import { Button, Form, Input, Select } from "antd"
+import { v4 as uuidv4 } from "uuid"
+import { ADD_CAR, GET_PEOPLE } from "../../queries"
 
 const AddCar = () => {
-    const [addCarId] = useState(uuidv4());
+    const [id] = useState(uuidv4());
     const [addCar] = useMutation(ADD_CAR);
     const [form] = Form.useForm();
     const [, forcedUpdate] = useState();
@@ -24,25 +24,25 @@ const AddCar = () => {
 
         addCar({
             variables: {
-                price: parseFloat(price),
-                model,
-                make,
+                id,
                 year: parseInt(year),
+                make,
+                model,
+                price: parseFloat(price),
                 personId,
-                addCarId,
             },
-            optimisticResponse: {
-                __typename: "Mutation",
-                updateCar: {
-                    __type: "Car",
-                    price,
-                    model,
-                    make,
-                    year,
-                    personId,
-                    addCarId,
-                },
-            },
+            // optimisticResponse: {
+            //     __typename: "Mutation",
+            //     updateCar: {
+            //         __type: "Car",
+            //         id,
+            //         year,
+            //         make,
+            //         model,
+            //         price,
+            //         personId,
+            //     },
+            // },
             update: (proxy, { data: { addPerson } }) => {
                 const data = proxy.readQuery({ query: GET_PEOPLE });
                 proxy.writeQuery({
@@ -50,62 +50,43 @@ const AddCar = () => {
                     data: {
                         ...data,
                         people: [...data.people, addPerson],
-                    },
-                });
-            },
-        });
-    };
+                    }
+                })
+            }
+        })
+    }
 
     return (
         <Form
             form={form}
             name="add-car-form"
-            onFinish={onFinish}
             layout="inline"
+            onFinish={onFinish}
             size="large"
             style={{ marginBottom: "40px" }}
         >
             <Form.Item
                 name="year"
-                rules={[
-                    {
-                        required: true,
-                        message: "Please input year of car!",
-                    },
-                ]}
+                rules={[{ required: true, message: "Please input year of car!"}]}
             >
                 <Input placeholder="Year" />
             </Form.Item>
             <Form.Item
                 name="make"
-                rules={[
-                    {
-                        required: true,
-                        message: "Please input make of car!",
-                    },
-                ]}
+                rules={[{ required: true, message: "Please input make of car!"}]}
             >
                 <Input placeholder="Make" />
             </Form.Item>
             <Form.Item
                 name="model"
-                rules={[
-                    {
-                        required: true,
-                        message: "Please input model of car!",
-                    },
-                ]}
+                rules={[{ required: true, message: "Please input model of car!"}]}
             >
                 <Input placeholder="Model" />
             </Form.Item>
             <Form.Item
                 name="price"
-                rules={[
-                    {
-                        required: true,
-                        message: "Please price year of car!",
-                    },
-                ]}
+                rules={[{ required: true, message: "Please input price of car!"}]}
+
             >
                 <Input placeholder="Price" />
             </Form.Item>
